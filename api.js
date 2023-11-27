@@ -3,12 +3,16 @@ const { request } = require('http')
 let mongoose = require('mongoose')
 const mma = require('./mma')
 const { log } = require('console')
+const { title } = require('process')
+let cors = require('cors')
 
 //create express app
 let app = express()
 
 //configure express app to encode/decode JSON
 app.use (express.json())
+//configure cors to allow all incoming request
+app.use(cors())
 
 
 
@@ -26,7 +30,7 @@ db.on('open', ()=>{
 //get the list of youtube videos
 //GET http://localhost:1234/1.0/youtube/mma
 app.get("/1.0/youtube/mma", (request, response)=>{
-    //use model instanace to find all documents from db
+    //use model instance to find all documents from db
     mma.find({})
         .then((data)=>{
             console.log("query sucess for /1.0/youtube/mma ")
@@ -37,6 +41,38 @@ app.get("/1.0/youtube/mma", (request, response)=>{
             console.log("error for /1.0/youtube/mma")
             response.json (error)
         })
+})
+
+//add new video document to the database
+//POST http://localhost:1234/1.0/youtube/add
+app.post("/1.0/youtube/add", (request, response)=>{
+    console.log("POST request for //1.0/youtube/add")
+    //extract request body
+    console.log(request.body)
+    console.log(request.body.vid)
+    console.log(request.body.likes)
+    console.log(request.body.dislikes)
+    console.log(request.body.title)
+    //create instance of model -> mma
+    let mmaNew = new mma({
+        vid:request.body.vid,
+        title:request.body.title,
+        likes:request.body.likes,
+        dislikes:request.body.dislikes
+
+    })
+    //save the model instance in database
+    mmaNew.save()
+        .then((data)=>{
+            response.send({
+                "status":"success",
+                "saved":data
+            })
+        })
+        .catch((error)=>{
+            response.send(error)
+        })
+
 })
 
 
